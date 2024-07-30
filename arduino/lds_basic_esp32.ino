@@ -32,7 +32,7 @@ HardwareSerial LidarSerial(2);  // TX 17, RX 16
 LDS_LDS02RR lidar;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(230400);
 
   Serial.print("LiDAR model ");
   Serial.println(lidar.getModelName());
@@ -77,19 +77,19 @@ size_t lidar_serial_write_callback(const uint8_t* buffer, size_t length) {
 
 void lidar_scan_point_callback(float angle_deg, float distance_mm, float quality,
                                bool scan_completed) {
-  static int i = 0;
+  //static int i = 0;
 
-  if ((i++ % 20 == 0) || scan_completed) {
-    Serial.print(i);
-    Serial.print(' ');
-    Serial.print(distance_mm);
-    Serial.print(' ');
-    Serial.print(angle_deg);
+  //if ((i++ % 20 == 0) || scan_completed) {
+    //Serial.print(i);
+    //Serial.print(' ');
+    Serial.print((int)distance_mm);
+    //Serial.print(' ');
+    //Serial.print((int)angle_deg);
     if (scan_completed)
-      Serial.println('*');
-    else
       Serial.println();
-  }
+    else
+      Serial.print(' ');
+  //}
 }
 
 void lidar_info_callback(LDS::info_t code, String info) {
