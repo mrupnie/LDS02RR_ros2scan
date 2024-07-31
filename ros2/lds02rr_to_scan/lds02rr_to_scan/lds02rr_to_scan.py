@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
 from sensor_msgs.msg import LaserScan
 import serial
 import argparse
@@ -41,21 +42,24 @@ class LidarReader(Node):
             return None
         scan = LaserScan()
         scan.header.stamp = self.get_clock().now().to_msg()
+        #scan.header.stamp = Time.now()
+        step_degree = 1
         scan.header.frame_id = "laser_frame"
-        scan.angle_min = 1.0
-        scan.angle_max = 2 * math.pi
-        scan.angle_increment = math.radians(1.0)
-        #scan.range_min = float(data[3])
-        #scan.range_max = float(data[4])
-        #scan.time_increment = (1.0 / 30.0) / 360.0  # Assuming 30Hz and 360 degrees
-        #scan.scan_time = 1.0 / 30.0
+        scan.angle_min = math.radians(1.0 * step_degree)
+        scan.angle_max = math.radians(360)
+        scan.angle_increment = math.radians(1.0 * step_degree)
+        # domyślny RPM to 300, czyli 5 obr / s, czyli 1800st/s
+        scan.range_min = 0.0
+        scan.range_max = 5.0
+        scan.time_increment = (1.0 / 5.0) / 360.0 * step_degree # Assuming 5Hz and 360 degrees
+        scan.scan_time = 1.0 / 5.0
         # Create a list of distances where the index corresponds to the angle
         #ranges = [float('inf')] * 360  # Update size based on your LiDAR's resolution
         #index = int(angle) % 360
         #ranges[index] = distance / 1000.0  # Assuming distance in mm
         #scan.ranges = [float(r) for r in data[5:]]
-        scan.ranges = [float(r)/1000 for r in data] # data in mm
-        scan.intensities = []  # If you have intensity data, populate it here
+        scan.ranges = [float(r)/1000 for r in data[::step_degree]] # data in mm
+        scan.intensities = [100.0 for r in data[::step_degree]]  # If you have intensity data, populate it here
         return scan
 
 def main(args=None):
