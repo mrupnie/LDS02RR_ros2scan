@@ -1,11 +1,11 @@
+import argparse
+import math
 import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
 from sensor_msgs.msg import LaserScan
+from std_srvs.srv import SetBool
 import serial
-import argparse
-import time
-import math
 
 class LidarReader(Node):
     def __init__(self, serial_port, baud_rate):
@@ -13,6 +13,7 @@ class LidarReader(Node):
         self.publisher_ = self.create_publisher(LaserScan, '/scan', 10)
         self.serial_port = serial.Serial(serial_port, baud_rate, timeout=1)
         self.timer = self.create_timer(0.1, self.read_lidar_data)  # 10 Hz
+        self.srv = self.create_service(SetBool, '/lidar/enable', self.enable_motor_callback)
 
     def read_lidar_data(self):
         if self.serial_port.in_waiting > 0:
@@ -26,9 +27,23 @@ class LidarReader(Node):
                     #                    f"ranges={scan_data.ranges[:5]}...")
                     self.publisher_.publish(scan_data)
                 else:
-                    self.get_logger().error('data received: ' + line)
+                    self.get_logger().warn('incomplete data')
             except ValueError:
                 self.get_logger().error('Invalid data received')
+
+    def enable_motor_callback(self, request, response):
+        if request.data:
+            self.serial_port.write(b's')
+            self.get_logger().info('Motor enabled')
+            response.success = True
+            response.message = 'Motor is enabled'
+        else:
+            self.get_logger().info('Motor disabled')
+            self.serial_port.write(b'e')
+            response.success = True
+            response.message = 'Motor is disabled'
+        
+        return response
 
     def parse_lidar_data(self, line):
         # Example: Parse the line into LaserScan message
