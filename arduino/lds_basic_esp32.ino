@@ -133,4 +133,17 @@ void lidar_packet_callback(uint8_t* packet, uint16_t length, bool scan_completed
 
 void loop() {
   lidar.loop();
+  // Check if there is any data available in the serial buffer
+  if (Serial.available() > 0) {
+    // Read the incoming byte
+    char command = Serial.read();
+    // Check if the command is 's' or 'e'
+    if (command == 's') {
+      Serial.println("start");
+      lidar.start();
+    } else if (command == 'e') {
+      Serial.println("end");
+      lidar.stop();
+    }
+  }
 }
