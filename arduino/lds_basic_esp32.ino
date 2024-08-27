@@ -65,6 +65,8 @@ void setup() {
 
   if (result < 0)
     Serial.println("WARNING: is LDS connected to ESP32?");
+
+  lidar.stop(); // żeby nie drenować baterii domyślnie lidar nie pracuje
 }
 
 int lidar_serial_read_callback() {
